@@ -1,5 +1,5 @@
 {
-    "name":"Ovh object storage manager",
+    "name":"domrafacz/ovh-object-storage-manager",
     "description":"Manager allows you to manage ovh object storage",
     "license": "MIT",
     "authors": [
