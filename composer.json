@@ -1,0 +1,30 @@
+{
+    "name":"Ovh object storage manager",
+    "description":"Manager allows you to manage ovh object storage",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dominik Rafacz",
+            "email": "dominik.rafacz@protonmail.com"
+        }
+    ],
+    "require": {
+        "slim/slim": "^3.0",
+        "slim/twig-view": "^2.5",
+        "slim/flash": "^0.4.0",
+        "kanellov/slim-twig-flash": "^0.2.0",
+        "php": ">=7.2.0",
+        "php-opencloud/openstack": "dev-master"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/domrafacz/openstack.git"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "SwiftManager\\": "src/"
+        }
+    }
+}

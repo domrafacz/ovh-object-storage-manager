@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager - index{% endblock %}
+
+{% block body %}
+<div class="container-fluid main-content">
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active"><a href="/">Home</a></li>
+                </ol>
+            </nav>
+            {% for region in regions %}
+            <a href="/list-containers/{{ region }}" class="btn btn-primary">{{ region }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

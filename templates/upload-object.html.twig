@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager - classic upload{% endblock %}
+
+{% block body %}
+    <div class="container-fluid main-content">
+        <div class="row">
+            <div class="col-sm-8 offset-sm-2">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/list-containers/{{ region }}">{{ region }}</a></li>
+                        <li class="breadcrumb-item active"><a
+                                href="/list-objects/{{ region }}/{{ container.name }}">{{ container.name }}</a></li>
+                    </ol>
+                </nav>
+                {% if return_message is defined %}
+                <div class="alert alert-warning" role="alert">
+                    {{ return_message }}
+                </div>
+                {% endif %}
+                {% if return_status is defined and return_status == 201 %}
+                <div class="alert alert-success" role="alert">
+                    Files upload completed
+                </div>
+                {% endif %}
+                region: <span id="region">{{ region }}</span><br>
+                container: {{ container.name }}<br>
+            </div>
+            <div class="col-sm-8 offset-sm-2 table-wrapper">
+                <form id="upload_form" class="form-group" method="POST" action="{{ container_url }}" enctype="multipart/form-data">
+                    <p>You can upload multiple objects</p>
+                    <p>Max single filesize: <span class="badge badge-primary">5 GB</span><br>
+                    Max total filesize: <span class="badge badge-primary">5 GB</span><br>
+                    Max files count: <span class="badge badge-primary">{{ max_file_count }}</span></p>
+                    <input type="hidden" id="redirect" name="redirect" value="{{ redirect }}">
+                    <input type="hidden" id="max_file_size" name="max_file_size" value="{{ max_file_size }}">
+                    <input type="hidden" id="max_file_count" name="max_file_count" value="{{ max_file_count }}">
+                    <input type="hidden" id="expires" name="expires" value="{{ expires }}">
+                    <input type="hidden" id="signature" name="signature" value="{{ signature }}">
+                    <div class="form-group">
+                        <input id="object" type="file" name="1" multiple>
+                    </div>
+                    <button class="btn btn-primary" id="upload-spinner" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Upload in progress
+                    </button>
+                    <div class="form-group">
+                        <button type="submit" name="submit" class="btn btn-primary" id="upload-submit-classic">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager - list objects{% endblock %}
+
+{% block body %}
+    <div class="container-fluid main-content">
+        <div class="row">
+            <div class="col-sm-8 offset-sm-2">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/list-containers/{{ region }}">{{ region }}</a></li>
+                        <li class="breadcrumb-item active"><a
+                                href="/list-objects/{{ region }}/{{ container.name }}">{{ container.name }}</a></li>
+                    </ol>
+                </nav>
+                <div class="container-info">
+                    Temp-Url-Key: 
+                    {% if manager.getAccountTempUrlKey() == false %}
+                    <span class="text-danger"> not set!</span>
+                    {% else %}
+                    {{ manager.getAccountTempUrlKey() }}
+                    {% endif %}
+                    <a href="/temp-url-settings/{{ region }}" class="fas fa-wrench"></a>
+                </div>
+                <div class="container-info">
+                    region: <span id="region">{{ region }}</span>
+                </div>
+                <div class="container-info">
+                    object count: {{ container.objectCount }}
+                    {% if container.objectCount > 0 %}
+                        <button type="submit" id="delete-objects" data-toggle="modal" data-target="#delete-all-objects-modal" class="btn badge badge-danger">Delete all</button>
+                    {% endif %}
+                </div>
+                <div class="container-info">
+                    bytes used: {{ container.bytesUsed }} ({{ manager.formatFilesize(container.bytesUsed) }})
+                </div>
+                <button type="button" class="btn btn-success btn-upload" data-toggle="modal"
+                    data-target="#upload-modal"><i class="fas fa-plus"></i> Upload file</button>
+            </div>
+            <div class="col-sm-8 offset-sm-2 table-wrapper">
+                <table id="objects-list" class="table table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">object name</th>
+                            <th scope="col">object size</th>
+                            <th scope="col">object type</th>
+                            <th scope="col">checksum</th>
+                            <th scope="col">last modified</th>
+                            <th scope="col">actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for object in objects %}
+                        <tr data-object-name="{{ object.name }}" data-container-name="{{ container.name }}"
+                            data-metadata='{{ '{' }}{% for metaKey, metaVal in object.getMetadata() %}"{{ metaKey }}":"{{ metaVal }}",{% endfor %}{{ '}' }}'>
+                            <td>{{ object.name }} <a class="fas fa-link" target="_blank" href="{{ object.getPublicUri() }}"></a> </td>
+                            <td>{{ manager.formatFilesize(object.contentLength) }}</td>
+                            <td>{{ object.contentType }}</td>
+                            <td>{{ object.hash }}</td>
+                            <td>{{ object.lastModified.format('Y-m-d H:i:s') }}</td>
+                            <td>
+                                <i class="far fa-trash-alt" data-toggle="modal" data-target="#delete-object-modal"></i> 
+                                <a target="_blank" href="/tempurl/{{ region }}/{{ container.name }}/{{ manager.urlEncode(object.name) }}">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <i data-toggle="modal" data-target="#edit-object-modal" class="fas fa-edit"></i>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- START delete container modal -->
+    <div class="modal fade" id="tempurl-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generate temporary url</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <p>You can generarte temporary url to an object with expiration time</p>
+                        <div>Region: <span class="badge badge-info region"></span></div>
+                        <div>Container name: <span class="badge badge-info container-name"></span></div>
+                        <div>Object count: <span class="badge badge-info object-count"></span></div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="delete-container-name" name="delete_container_name">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END delete container modal -->
+
+    <!-- START upload object modal -->
+    <div class="modal fade" id="upload-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload objects</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <input type="hidden" id="upload-url" name="upload-url"
+                    value="/upload-object/{{ region }}/{{ container.name }}">
+                <input type="hidden" id="container-url" value="{{ container_url }}">
+
+                {% if ajax_upload == false %}
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        Ajax upload is unavaiable for this container <a href="/list-objects/{{ region }}/{{ container.name }}/allow-cors"
+                            class="alert-link">allow CORS</a> or use <a
+                            href="/upload-object/{{ region }}/{{ container.name }}" class="alert-link">CLASSIC
+                            upload</a> form
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+                {% else %}
+                <form id="upload_form" method="POST" action="{{ container_url }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <a href="/upload-object/{{ region }}/{{ container.name }}" class="alert-link" target="_blank">open CLASSIC upload form</a>
+                        <p>You can upload multiple objects, with maximum filesize of 5 GB</p>
+                        <input type="hidden" id="redirect" name="redirect" value="{{ redirect }}">
+                        <input type="hidden" id="max_file_size" name="max_file_size" value="{{ max_file_size }}">
+                        <input type="hidden" id="max_file_count" name="max_file_count" value="{{ max_file_count }}">
+                        <input type="hidden" id="expires" name="expires" value="{{ expires }}">
+                        <input type="hidden" id="signature" name="signature" value="{{ signature }}">
+                        <input id="object" type="file" name="1" multiple>
+                        <span id="progress"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" name="submit" class="btn btn-primary" id="upload-submit">Upload</button>
+                        <button class="btn btn-primary" id="upload-spinner" type="button" disabled>
+                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Upload in progress
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- END upload object modal -->
+
+    <!-- START delete object modal -->
+    <div class="modal fade" id="delete-object-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete object</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            Selected object will be deleted PERNAMENTLY
+                        </div>
+                        <div>Region: <span class="badge badge-info region"></span></div>
+                        <div>Container name: <span class="badge badge-info container-name"></span></div>
+                        <div>Object name: <span class="badge badge-info object-name"></span></div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="hidden" id="delete-object-name" name="delete_object_name">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- END delete object modal -->
+
+    <!-- START delete all objects modal -->
+    <div class="modal fade" id="delete-all-objects-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete object</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        <div class="modal-body">
+                            <div class="alert alert-danger" role="alert">
+                                All objects will be deleted PERNAMENTLY
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" name="delete_all_objects" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- END delete all objects modal -->
+
+        <!-- START edit object modal -->
+        <div class="modal fade" id="edit-object-modal" tabindex="-1" role="dialog" aria-labelledby="editObjectLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editObjectLabel">Edit object</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        <div class="modal-body">
+                            <label class="col-form-label">Object metadata:</label>
+                            <div class="metadata-wrapper">
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" id="add-meta">Add</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" id="modify-object-name" name="modify_object_name">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- END edit container modal -->
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function () {
+            $('#objects-list').DataTable({
+                'pageLength': 100,
+                columnDefs: [{
+                        type: 'file-size',
+                        targets: 1
+                    },
+                    {
+                        'orderable': false,
+                        'targets': 5
+                    }
+                ],
+            });
+        });
+    </script>
+{% endblock %}

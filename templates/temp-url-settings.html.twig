@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager - temp url settings{% endblock %}
+
+{% block body %}
+<div class="container-fluid main-content">
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="/list-containers/{{ region }}">{{ region }}</a></li>
+                    <li class="breadcrumb-item active">Temp url settings</li>
+                </ol>
+            </nav>
+            <div class="alert alert-danger" role="alert">
+                Temp url key change will invalidate all generated links!
+            </div>
+            <form action="" method="POST">
+                <div class="form-group">
+                    <label for="temp-url-key">Temp-Url-Key</label>
+                    <input type="text" class="form-control" name="temp_url_key" id="temp-url-key" placeholder="" value="{{ manager.getAccountTempUrlKey() }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Change</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

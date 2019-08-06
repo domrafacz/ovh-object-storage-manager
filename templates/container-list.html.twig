@@ -1,0 +1,219 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager - list containers{% endblock %}
+
+{% block body %}
+    <div class="container-fluid main-content">
+        <div class="row">
+            <div class="col-sm-8 offset-sm-2">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item active"><a href="/list-containers/{{ region }}">{{ region }}</a></li>
+                    </ol>
+                </nav>
+                region: <span id="region">{{ region }}</span><br>
+                container count: {{ container_count }}<br>
+                object count: {{ object_count }}<br>
+                bytes used: {{ bytes_used }} ({{ manager.formatFilesize(bytes_used) }})<br>
+                <button type="button" class="btn btn-success btn-upload" data-toggle="modal" data-target="#addContainerModal"><i class="fas fa-plus"></i> Add container</button>
+            </div>
+            <div class="col-sm-8 offset-sm-2 table-wrapper">
+                <table id="containers-list" class="table table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">container name</th>
+                            <th scole="col">type</th>
+                            <th scope="col">object count</th>
+                            <th scope="col">actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for container in containers %}
+                        {{ container.retrieve() }} 
+                        <tr data-url="{{ manager.getContainerUrl(container.name) }}" data-object-count="{{ container.objectCount }}" data-container-name="{{ container.name }}" data-type="{{ manager.getContainerType(container.read) }}"
+                            data-metadata='{{ '{' }}{% for metaKey, metaVal in container.metadata %}"{{ metaKey }}":"{{ metaVal }}",{% endfor %}{{ '}' }}'>
+                            <td><a href="/list-objects/{{ region }}/{{ container.name }}">{{ container.name }}</a>  
+                                <i class="fas fa-link" data-toggle="modal"
+                                    data-target="#container-url-modal"></i>
+                            </td>
+                            <td><span class="badge {% if manager.getContainerType(container.read) == 'public' %}badge-success{% else %}badge-danger{% endif %}">{{ manager.getContainerType(container.read) }}</span></td>
+                            <td>{{ container.objectCount }}</td>
+                            <td>
+                                <i class="far fa-trash-alt" data-toggle="modal" data-target="#delete-container-modal"></i>
+                                <i data-toggle="modal" data-target="#edit-container-modal" class="fas fa-edit"></i>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- START add container modal -->
+        <div class="modal fade" id="addContainerModal" tabindex="-1" role="dialog" aria-labelledby="addContainerLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addContainerLabel">Add container</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="container-name" class="col-form-label">Container name:</label>
+                                <input type="text" class="form-control" name="container_name" id="container-name" maxlength="256" placeholder="max length 256 chars">
+                            </div>
+                            <div class="form-group">
+                                <label class="col-form-label">Container type:</label>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="customRadio1" name="container_type" value="private"
+                                        class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="customRadio1">Private</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="customRadio2" name="container_type" value="public"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadio2">Public</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add container</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- END add container modal -->
+
+        <!-- START edit container modal -->
+        <div class="modal fade" id="edit-container-modal" tabindex="-1" role="dialog" aria-labelledby="editContainerLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editContainerLabel">Edit container</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="container-name" class="col-form-label">Container name:</label>
+                                <input type="text" class="form-control" name="container_name2" id="container-name2" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-form-label">Container type:</label>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="customRadio3" name="container_type2" value="private"
+                                        class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="customRadio3">Private</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" id="customRadio4" name="container_type2" value="public"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="customRadio4">Public</label>
+                                </div>
+                            </div>
+                            <label class="col-form-label">Container metadata:</label>
+                            <div class="metadata-wrapper">
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary" id="add-meta">Add</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- END edit container modal -->
+
+        <!-- START delete container modal -->
+        <div class="modal fade" id="delete-container-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete container</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="POST">
+                        <div class="modal-body">
+                            <p>Container and all objects inside will be deleted PERNAMENTLY</p>
+                            <div class="alert alert-warning" role="alert">
+                                You can delete only empty containers
+                            </div>
+                            <div>Region: <span class="badge badge-info region"></span></div>
+                            <div>Container name: <span class="badge badge-info container-name"></span></div>
+                            <div>Object count: <span class="badge badge-info object-count"></span></div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" id="delete-container-name" name="delete_container_name">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- END delete container modal -->
+
+        <!-- START container url modal -->
+        <div class="modal fade" id="container-url-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Container url</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Container url</p>
+                        <div class="form-group">
+                            <input class="form-control" id="container-url-input" readonly>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-info" id="copy-container-url">Copy</button>
+                            <a href="" target="_blank" class="btn btn-primary" id="open-container-url">Open</a>
+                        </div>
+                        <div class="form-group">
+                            <div id="url-copied" class="alert alert-success d-none" role="alert">Copied to clipboard</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END container url modal -->
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            $('#containers-list').DataTable({
+                'pageLength': 100,
+                columnDefs: [
+                    { 'orderable': false, 'targets': 3 }
+                ]
+            });
+        });
+
+    {% if messages is defined %}
+        {% for message in messages %}
+            Swal.fire('{{ message }}');
+        {% endfor %}
+    {% endif %}
+    </script>
+{% endblock %}

@@ -1,0 +1,83 @@
+.main-content {
+    padding-top: 15px;
+}
+
+.container-info {
+    color: #000;
+    line-height: 1.5rem;
+    display: flex;
+}
+
+.container-info form {
+    display: flex;
+}
+
+.container-info .fa-wrench {
+    line-height: 1.5rem;
+    margin-left: 0.5rem;
+}
+
+i {
+    transition: color .3s;
+    font-size: 24px;
+}
+
+.fa-trash-alt:hover {
+    color: red;
+    cursor: pointer;
+}
+
+.fa-trash-alt {
+    font-size: 40px;
+}
+
+.fa-link:hover,
+.fa-edit:hover,
+.fa-download:hover {
+    color: #007bff;
+    cursor: pointer;
+}
+
+.fa-download {
+    color: #212529;
+}
+
+.table td {
+    vertical-align: middle !important;
+    font-size: 18px !important;
+    line-height: 22px;
+}
+
+.table td i {
+    font-size: 18px;
+}
+
+.btn .fa-plus {
+    font-size: 16px;
+}
+
+.table-wrapper,
+.btn-upload {
+    margin-top: 15px;
+}
+
+#upload-spinner {
+    display: none;
+}
+
+.metadata-wrapper .form-row {
+    padding-bottom: 10px;
+}
+
+.metadata-wrapper .input-group-append {
+    align-items: center;
+}
+
+.metadata-wrapper .input-group-append .fa-trash-alt {
+    font-size: 26px;
+    padding-left: 10px;
+}
+
+#delete-objects {
+    margin-left: 10px;
+}
