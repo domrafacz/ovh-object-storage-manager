@@ -9,7 +9,7 @@ return [
         'password' => '',
         'tenantId' => '',
         'domainName' => '',
-        'regions' => ['BHS1', 'DE1', 'GRA1', 'SBG1', 'UK1', 'WAW1']
+        'regions' => ['BHS', 'DE', 'GRA', 'SBG', 'UK', 'WAW']
     ],
     'view' => new \Slim\Views\Twig('../templates/')
 ];
