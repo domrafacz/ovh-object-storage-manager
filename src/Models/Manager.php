@@ -47,15 +47,15 @@ class Manager
     {
         $this->openstack = new OpenStack([
             'authUrl' => $this->settings['authUrl'],
-            'region' => $region,
-            'username' => $this->settings['username'],
-            'password' => $this->settings['password'],
-            'tenantId' => $this->settings['tenantId'],
-            'identityService' => Service::factory(
-                new Client([
-                    'base_uri' => Utils::normalizeUrl($this->settings['authUrl']),
-                    'handler' => HandlerStack::create(),
-                ])),
+            'region'  => $region,
+            'user'    => [
+                'name' => $this->settings['username'],
+                'password' => $this->settings['password'],
+                'domain' => [
+                    'name' => $this->settings['domainName'],
+                ],
+            ],
+            'scope'   => ['project' => ['id' => $this->settings['tenantId']]]
         ]);
 
         $this->objectStore = $this->openstack->objectStoreV1();
