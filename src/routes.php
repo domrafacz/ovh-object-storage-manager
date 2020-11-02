@@ -16,6 +16,4 @@ return function (App $app) {
     $app->any('/upload-object-success', 'SwiftManager\Controllers\MainController:uploadObjectSuccess');
 
     $app->any('/temp-url-settings/{region}', 'SwiftManager\Controllers\MainController:tempUrlSettings');
-
-    $app->get('/test', 'SwiftManager\Controllers\MainController:test');
 };
