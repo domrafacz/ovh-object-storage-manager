@@ -12,14 +12,15 @@
         "slim/slim": "^3.0",
         "slim/twig-view": "^2.5",
         "slim/flash": "^0.4.0",
-        "kanellov/slim-twig-flash": "^0.2.0",
         "php": ">=7.2.0",
-        "php-opencloud/openstack": "^3.0"
+        "php-opencloud/openstack": "dev-master",
+        "domrafacz/slim-twig-flash-messages": "^1.0"
     },
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/domrafacz/openstack.git"
+            "url": "https://github.com/domrafacz/openstack.git",
+            "no-api": true
         }
     ],
     "autoload": {

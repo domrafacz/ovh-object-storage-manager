@@ -41,6 +41,10 @@ class Manager
         if (empty($this->settings['tenantId'])) {
             die('config: tenantId not set!');
         }
+
+        if (empty($this->settings['tenantName'])) {
+            die('config: tenantName not set!');
+        }
     }
 
     public function connect(string $region)
@@ -50,12 +54,19 @@ class Manager
             'region'  => $region,
             'user'    => [
                 'name' => $this->settings['username'],
-                'password' => $this->settings['password'],
-                'domain' => [
-                    'name' => $this->settings['domainName'],
+                'domain'   => [
+                    'id' => 'default'
                 ],
+                'password' => $this->settings['password'],
             ],
-            'scope'   => ['project' => ['id' => $this->settings['tenantId']]]
+            'scope' => [
+                'project' => [
+                    'name' => $this->settings['tenantName'],
+                    'domain'   => [
+                        'id' => 'default'
+                    ]
+                ],
+            ]
         ]);
 
         $this->objectStore = $this->openstack->objectStoreV1();

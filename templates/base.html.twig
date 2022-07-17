@@ -28,7 +28,7 @@
 
     {% block js %}
     {% endblock %}
-    {% for messages in flash('error') %}
+    {% for message in flash_get_message('error') %}
     <script>
         Swal.fire({
             type: 'error',
@@ -37,7 +37,7 @@
     </script>
     {% endfor %}
 
-    {% for message in flash('success') %}
+    {% for message in flash_get_message('success') %}
     <script>
         Swal.fire({
             type: 'success',

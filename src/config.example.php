@@ -8,7 +8,7 @@ return [
         'username' => '',
         'password' => '',
         'tenantId' => '',
-        'domainName' => '',
+        'tenantName' => '',
         'regions' => ['BHS', 'DE', 'GRA', 'SBG', 'UK', 'WAW']
     ],
     'view' => new \Slim\Views\Twig('../templates/')

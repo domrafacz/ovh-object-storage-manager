@@ -17,7 +17,7 @@ $container['flash'] = function () {
     return new \Slim\Flash\Messages();
 };
 
-$container['view']->addExtension(new Knlv\Slim\Views\TwigMessages(
+$container['view']->addExtension(new Slim\Twig\FlashMessages(
     $container['flash']
 ));
 
