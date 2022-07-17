@@ -10,7 +10,7 @@ Manager has been created mainly for ovh object storage, but with some small modi
 ## Installing
 
 ```
-composer require domrafacz/ovh-object-storage-manager
+composer create-project domrafacz/ovh-object-storage-manager
 ```
 
 ## Requirements

@@ -1,5 +1,5 @@
 {
-    "name":"Ovh object storage manager",
+    "name":"domrafacz/ovh-object-storage-manager",
     "description":"Manager allows you to manage ovh object storage",
     "license": "MIT",
     "authors": [
@@ -14,7 +14,7 @@
         "slim/flash": "^0.4.0",
         "kanellov/slim-twig-flash": "^0.2.0",
         "php": ">=7.2.0",
-        "php-opencloud/openstack": "dev-master"
+        "php-opencloud/openstack": "^3.0"
     },
     "repositories": [
         {
