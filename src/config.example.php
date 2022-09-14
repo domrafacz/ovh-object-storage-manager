@@ -9,7 +9,8 @@ return [
         'password' => '',
         'tenantId' => '',
         'tenantName' => '',
-        'regions' => ['BHS', 'DE', 'GRA', 'SBG', 'UK', 'WAW']
+        'regions' => ['BHS', 'DE', 'GRA', 'SBG', 'UK', 'WAW'],
+        'tempUrlExpireTime' => 500,
     ],
     'view' => new \Slim\Views\Twig('../templates/')
 ];

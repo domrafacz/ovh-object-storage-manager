@@ -46,6 +46,10 @@ class Manager
         if (empty($this->settings['tenantName'])) {
             die('config: tenantName not set!');
         }
+
+        if (empty($this->settings['tempUrlExpireTime'])) {
+            $this->settings['tempUrlExpireTime'] = 500;
+        }
     }
 
     public function connect(string $region) : void
@@ -214,7 +218,7 @@ class Manager
         $key = $this->account->getMetadata()['Temp-Url-Key'];
 
         if ($expires == 0) {
-            $expires = time() + 500;
+            $expires = time() + $this->settings['tempUrlExpireTime'];
         }
 
         $hmac_body = "$method\n$expires\n$path";
