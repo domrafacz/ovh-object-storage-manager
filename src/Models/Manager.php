@@ -3,28 +3,29 @@
 namespace SwiftManager\Models;
 
 use Generator;
-use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Stream;
-use OpenStack\Common\Transport\Utils;
-use OpenStack\Identity\v2\Service;
+use OpenStack\ObjectStore\v1\Models\Container;
+use OpenStack\ObjectStore\v1\Models\StorageObject;
+use OpenStack\ObjectStore\v1\Service;
 use OpenStack\OpenStack;
+use OpenStack\ObjectStore\v1\Models\Account;
+use Slim\Collection;
 
 class Manager
 {
-    private $settings = null;
-    private $openstack = null;
-    private $region = null;
-    private $objectStore = null;
-    private $account = null;
+    private ?Collection $settings = null;
+    private ?OpenStack $openstack = null;
+    private ?string $region = null;
+    private ?Service $objectStore = null;
+    private ?Account $account = null;
 
-    public function __construct(object $settings)
+    public function __construct(Collection $settings)
     {
         $this->settings = $settings;
         $this->configCheck();
     }
 
-    private function configCheck()
+    private function configCheck() : void
     {
         if (empty($this->settings['authUrl'])) {
             die('config: authUrl not set!');
@@ -47,7 +48,7 @@ class Manager
         }
     }
 
-    public function connect(string $region)
+    public function connect(string $region) : void
     {
         $this->openstack = new OpenStack([
             'authUrl' => $this->settings['authUrl'],
@@ -80,7 +81,7 @@ class Manager
         return $this->settings['regions'];
     }
 
-    public function createContainer(string $containerName, string $containerType): object
+    public function createContainer(string $containerName, string $containerType): Container
     {
         $params = ['name' => $containerName];
 
@@ -93,7 +94,7 @@ class Manager
         return $this->objectStore->createContainer($params);
     }
 
-    public function modifyContainer(array $params): object
+    public function modifyContainer(array $params): Container
     {
         $containerData = ['name' => $params['container_name2']];
         $metadata = [];
@@ -115,12 +116,12 @@ class Manager
         return $container;
     }
 
-    public function deleteContainer(string $containerName)
+    public function deleteContainer(string $containerName) : void
     {
         $this->objectStore->getContainer($containerName)->delete();
     }
 
-    public function getContainer(string $containerName): object
+    public function getContainer(string $containerName): Container
     {
         try {
             $container = $this->objectStore->getContainer($containerName);
@@ -190,7 +191,7 @@ class Manager
         return $this->objectStore->getContainer($containerName)->listObjects();
     }
 
-    public function getObjectTempUrl(string $containerName, string $objectName, int $expires): void
+    public function getObjectTempUrl(string $containerName, string $objectName, int $expires): string
     {
         $object = $this->objectStore->getContainer($containerName)->getObject($objectName);
 
@@ -199,6 +200,7 @@ class Manager
         } catch (\Exception $e) {
             die('object does not exists');
         };
+
         $objectUrl = $this->objectStore->getContainer($containerName)->getObject($objectName)->getPublicUri();
         $key = $this->account->getMetadata()['Temp-Url-Key'];
 
@@ -218,7 +220,8 @@ class Manager
         $hmac_body = "$method\n$expires\n$path";
         $sig = hash_hmac("sha1", $hmac_body, $key);
         $objectUrl .= "?temp_url_sig=$sig&temp_url_expires=$expires";
-        header('Location: ' . $objectUrl);
+
+        return $objectUrl;
     }
 
     public function setCors(string $containerName, string $cors): void
@@ -229,7 +232,7 @@ class Manager
         ]);
     }
 
-    public function createObject(string $containerName, string $path, string $fileName): object
+    public function createObject(string $containerName, string $path, string $fileName): StorageObject
     {
         $stream = new Stream(fopen($path . $fileName, 'r'));
 
@@ -238,10 +241,10 @@ class Manager
             'stream' => $stream,
         ];
 
-        return $object = $this->objectStore->getContainer($containerName)->createObject($options);
+        return $this->objectStore->getContainer($containerName)->createObject($options);
     }
 
-    public function modifyObject(string $containerName, array $params): object
+    public function modifyObject(string $containerName, array $params): StorageObject
     {
         $metadata = [];
 

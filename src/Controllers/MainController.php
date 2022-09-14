@@ -2,13 +2,14 @@
 
 namespace SwiftManager\Controllers;
 
-use Slim\Http\UploadedFile;
+use Slim\Http\Response;
 use SwiftManager\Models\Manager;
+use \Slim\Container;
 
 class MainController
 {
-    private $container;
-    private $manager;
+    private Container $container;
+    private Manager $manager;
 
     public function __construct(&$container)
     {
@@ -16,13 +17,13 @@ class MainController
         $this->manager = new Manager($this->container->get('settings'));
     }
 
-    public function index($request, $response, $args)
+    public function index($request, $response, $args) : Response
     {
-        $response = $this->container->get('view')->render($response, 'index.html.twig', ['regions' => $this->manager->getRegions()]);
-        return $response;
+        $test = $this->container->get('settings');
+        return $this->container->get('view')->render($response, 'index.html.twig', ['regions' => $this->manager->getRegions()]);
     }
 
-    public function listContainers($request, $response, $args)
+    public function listContainers($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
 
@@ -43,7 +44,7 @@ class MainController
             $this->container->get('flash')->addMessageNow('success', 'Container has been modified');
         }
 
-        $response = $this->container->get('view')->render($response, 'container-list.html.twig', [
+        return $this->container->get('view')->render($response, 'container-list.html.twig', [
             'containers' => $this->manager->getContainersList(),
             'region' => $args['region'],
             'container_count' => $this->manager->getContainerCount(),
@@ -51,11 +52,9 @@ class MainController
             'bytes_used' => $this->manager->getBytesUsed(),
             'manager' => $this->manager,
         ]);
-
-        return $response;
     }
 
-    public function listObjects($request, $response, $args)
+    public function listObjects($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
         $params = $request->getParams();
@@ -84,7 +83,7 @@ class MainController
         $body = sprintf("%s\n%s\n%s\n%s\n%s", $path, $redirect, $maxFileSize, $maxFileCount, $expires);
         $signature = hash_hmac('sha1', $body, $this->manager->getAccountTempUrlKey());
 
-        $response = $this->container->get('view')->render($response, 'objects-list.html.twig', [
+        return $this->container->get('view')->render($response, 'objects-list.html.twig', [
             'objects' => $this->manager->getContainerObjectsList($args['container']),
             'region' => $args['region'],
             'object_count' => $this->manager->getObjectCount(),
@@ -100,14 +99,14 @@ class MainController
         ]);
     }
 
-    public function allowCors($request, $response, $args)
+    public function allowCors($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
         $this->manager->setCors($args['container'], '*');
-        return $response->withRedirect("/list-objects/{$args['region']}/{$args['container']}"); 
+        return $response->withRedirect("/list-objects/{$args['region']}/{$args['container']}");
     }
 
-    public function tempUrl($request, $response, $args)
+    public function tempUrl($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
 
@@ -115,10 +114,10 @@ class MainController
             $args['expires'] = 0;
         }
 
-        $this->manager->getObjectTempUrl($args['container'], $args['object'], $args['expires']);
+        return $response->withRedirect($this->manager->getObjectTempUrl($args['container'], $args['object'], $args['expires']));
     }
 
-    public function tempUrlSettings($request, $response, $args)
+    public function tempUrlSettings($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
 
@@ -129,13 +128,13 @@ class MainController
             $this->container->get('flash')->addMessageNow('success', 'Temp url key has been changed');
         }
         
-        $response = $this->container->get('view')->render($response, 'temp-url-settings.html.twig', [
+        return $this->container->get('view')->render($response, 'temp-url-settings.html.twig', [
             'region' => $args['region'],
             'manager' => $this->manager,
         ]);
     }
 
-    public function uploadObject($request, $response, $args)
+    public function uploadObject($request, $response, $args) : Response
     {
         $this->manager->connect($args['region']);
 
@@ -172,10 +171,10 @@ class MainController
             $viewData['return_status'] = $params['status'];
         }
 
-        $response = $this->container->get('view')->render($response, 'upload-object.html.twig', $viewData);
+        return $this->container->get('view')->render($response, 'upload-object.html.twig', $viewData);
     }
 
-    public function uploadObjectSuccess($request, $response, $args)
+    public function uploadObjectSuccess($request, $response, $args) : Response
     {
         header('Access-Control-Allow-Origin: *');
         return $response->write('success');
